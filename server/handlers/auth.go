@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,8 +29,8 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Check if user already exists
-	if _, exists := models.GetUserByID(user.Email); exists {
+	// Check if user already exists by email
+	if _, exists := models.GetUserByEmail(user.Email); exists {
 		c.JSON(http.StatusConflict, gin.H{"error": "User with this email already exists"})
 		return
 	}
@@ -57,22 +58,31 @@ func LoginUser(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&credentials); err != nil {
+		log.Printf("Login error: Failed to bind JSON: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Find the user
-	user, exists := models.GetUserByID(credentials.Email)
+	log.Printf("Login attempt: Email=%s", credentials.Email)
+
+	// Find the user by email
+	user, exists := models.GetUserByEmail(credentials.Email)
 	if !exists {
+		log.Printf("Login failed: User with email %s not found", credentials.Email)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
+	log.Printf("Found user: %s, verifying password", user.Email)
+
 	// Check password
 	if user.Password != credentials.Password {
+		log.Printf("Login failed: Password mismatch for user %s", user.Email)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
+
+	log.Printf("Login successful for user: %s (Role: %s)", user.Email, user.Role)
 
 	// Set user info in session/cookie
 	c.Set("userID", user.ID)

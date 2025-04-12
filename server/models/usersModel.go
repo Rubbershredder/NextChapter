@@ -12,6 +12,8 @@ const (
 	RoleSeeker = "seeker"
 )
 
+var Users = make(map[string]User)
+
 // we initialise the user structure here
 type User struct {
 	ID           string `json:"id"`
@@ -38,6 +40,7 @@ func SaveUser(user User) error {
 	return saveUsersToDisk() //this function is called to save the user
 }
 
+// GetUserByID looks up a user by ID
 func GetUserByID(id string) (User, bool) {
 	userMutex.RLock() // used to protect the users map
 	defer userMutex.RUnlock()
@@ -46,6 +49,18 @@ func GetUserByID(id string) (User, bool) {
 	return user, exists
 }
 
+// GetUserByEmail looks up a user by email instead of ID
+func GetUserByEmail(email string) (User, bool) {
+	userMutex.RLock()
+	defer userMutex.RUnlock()
+
+	for _, user := range users {
+		if user.Email == email {
+			return user, true
+		}
+	}
+	return User{}, false
+}
 func saveUsersToDisk() error {
 	data, err := json.MarshalIndent(users, "", "  ")
 	if err != nil {
