@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+
+	models.InitializeDataStore()
 	// Initialize the router
 	router := gin.Default()
 

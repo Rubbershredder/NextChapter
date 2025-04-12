@@ -24,7 +24,7 @@ type User struct {
 	Role         string `json:"role"`
 }
 
-// we wull initialize the data dirctory file path here
+// we will initialize the data dirctory file path here
 var (
 	userFilePath = "data/users.json"
 	users        = make(map[string]User) // used to map the user ID to the user
@@ -37,12 +37,12 @@ func SaveUser(user User) error {
 	defer userMutex.Unlock()
 
 	users[user.ID] = user
-	return saveUsersToDisk() //this function is called to save the user
+	return saveUsersToDisk()
 }
 
 // GetUserByID looks up a user by ID
 func GetUserByID(id string) (User, bool) {
-	userMutex.RLock() // used to protect the users map
+	userMutex.RLock()
 	defer userMutex.RUnlock()
 
 	user, exists := users[id]
@@ -61,6 +61,7 @@ func GetUserByEmail(email string) (User, bool) {
 	}
 	return User{}, false
 }
+
 func saveUsersToDisk() error {
 	data, err := json.MarshalIndent(users, "", "  ")
 	if err != nil {

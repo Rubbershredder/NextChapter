@@ -16,13 +16,12 @@ func BasicAuth() gin.HandlerFunc {
 			return
 		}
 
-		user, exists := models.GetUserByID(email)
+		user, exists := models.GetUserByEmail(email)
 		if !exists || user.Password != password {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
-		// Store user information in the context
 		c.Set("userID", user.ID)
 		c.Set("userRole", user.Role)
 		c.Next()

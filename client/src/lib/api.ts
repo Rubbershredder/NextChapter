@@ -58,19 +58,18 @@ export const getBookById = async (id: string): Promise<Book> => {
   return handleResponse(response);
 };
 
-export const createBook = async (bookData: Omit<Book, "id" | "ownerId" | "status"> &{genre?: string} , token: string): Promise<Book> => {
+export const createBook = async (bookData: Omit<Book, "id" | "ownerId" | "status">, email: string, password: string): Promise<Book> => {
+  const token = btoa(`${email}:${password}`); 
   const response = await fetch(`${API_URL}/books`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Basic ${token}`,
+      "Authorization": `Basic ${token}`, 
     },
     body: JSON.stringify(bookData),
   });
-  
   return handleResponse(response);
 };
-
 export const updateBook = async (id: string, bookData: Partial<Book>, token: string): Promise<Book> => {
   const response = await fetch(`${API_URL}/books/${id}`, {
     method: "PUT",

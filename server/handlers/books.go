@@ -48,15 +48,9 @@ func GetBookById(c *gin.Context) {
 
 // CreateBook adds a new book listing
 func CreateBook(c *gin.Context) {
-	userID, userRole, exists := GetUserFromContext(c)
+	userID, _, exists := GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// Only owners can create book listings
-	if userRole != models.RoleOwner {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only book owners can create listings"})
 		return
 	}
 
@@ -66,27 +60,23 @@ func CreateBook(c *gin.Context) {
 		return
 	}
 
-	// Validate required fields
+	// Ensure required fields
 	if book.Title == "" || book.Author == "" || book.Location == "" || book.ContactInfo == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Title, author, location, and contact info are required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
 		return
 	}
 
-	// Set book properties
+	// Set system-generated fields
 	book.ID = uuid.New().String()
 	book.OwnerID = userID
-	book.Status = "available" // Default status
+	book.Status = "available"
 
-	// Save the book
 	if err := models.SaveBook(book); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save book"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Book listing created successfully",
-		"book":    book,
-	})
+	c.JSON(http.StatusCreated, book)
 }
 
 // UpdateBook updates an existing book listing

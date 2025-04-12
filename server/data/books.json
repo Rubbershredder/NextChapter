@@ -1,0 +1,35 @@
+{
+    "book1": {
+      "id": "book1",
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "genre": "Classic",
+      "location": "New York",
+      "contactInfo": "owner1@example.com",
+      "ownerId": "user1",
+      "status": "available",
+      "imageUrl": "https://example.com/great-gatsby.jpg"
+    },
+    "book2": {
+      "id": "book2",
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "genre": "Fiction",
+      "location": "Alabama",
+      "contactInfo": "owner2@example.com",
+      "ownerId": "user2",
+      "status": "available",
+      "imageUrl": "https://example.com/mockingbird.jpg"
+    },
+    "book3": {
+      "id": "book3",
+      "title": "1984",
+      "author": "George Orwell",
+      "genre": "Dystopian",
+      "location": "London",
+      "contactInfo": "+1234567890",
+      "ownerId": "user3",
+      "status": "rented",
+      "imageUrl": "https://example.com/1984.jpg"
+    }
+  }
