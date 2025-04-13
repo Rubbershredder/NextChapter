@@ -58,7 +58,7 @@ export default function AddBookPage() {
   }
 
   return (
-    <div className="container py-8">
+    <div className="max-w-screen-xl mx-auto px-4">
       <div className="mb-6">
         <Button variant="outline" size="sm" asChild>
           <Link href="/dashboard">
