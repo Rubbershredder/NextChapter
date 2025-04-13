@@ -70,23 +70,23 @@ export default function BookDetailPage() {
   }
 
   const handleRequestBook = async () => {
-    setRequestingBook(true)
+    setRequestingBook(true);
     try {
-      await api.post(`/books/${id}/request`, {})
-      toast.success("Book request sent successfully")
-      const response = await api.get<{ book: Book }>(`/books/${id}`)
-      setBook(response.book)
+        await api.post(`/books/${id}/request`, {});
+        toast.success("Book request sent successfully");
+        const response = await api.get<{ book: Book }>(`/books/${id}`);
+        setBook(response.book);
     } catch (error: any) {
-      console.error("Error requesting book:", error)
-      if (error.response?.status === 404) {
-        toast.error("Book not found or unavailable for request")
-      } else {
-        toast.error("Failed to request book")
-      }
+        console.error("Error requesting book:", error);
+        if (error.response?.status === 404) {
+            toast.error("Book not found or unavailable for request");
+        } else {
+            toast.error("Failed to request book");
+        }
     } finally {
-      setRequestingBook(false)
+        setRequestingBook(false);
     }
-  }
+};
 
   if (isLoading) {
     return (

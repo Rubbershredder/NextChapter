@@ -53,8 +53,11 @@ func SetupRoutes(router *gin.Engine) {
 
 		// Book routes
 		authenticated.POST("/books", handlers.CreateBook)
-		authenticated.GET("/my-books", handlers.GetMyBooks)
+		authenticated.GET("/my-books", handlers.GetMyBooks)         // Existing route
+		authenticated.GET("/books/owned", handlers.GetOwnedBooks)   // New route for owners
+		authenticated.GET("/rented-books", handlers.GetRentedBooks) // New route for seekers
 		authenticated.PUT("/books/:id", handlers.UpdateBook)
+		authenticated.POST("/books/:id/request", handlers.RequestBook)
 		authenticated.DELETE("/books/:id", handlers.DeleteBook)
 		authenticated.PATCH("/books/:id/status", handlers.UpdateBookStatus)
 

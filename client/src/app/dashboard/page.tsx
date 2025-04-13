@@ -28,7 +28,7 @@ export default function DashboardPage() {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const endpoint = user.role === "owner" ? "/books/owned" : "/books/rented";
+        const endpoint = user.role === "owner" ? "/books/owned" : "/rented-books";
         const response: { books: Book[] } = await api.get(endpoint);
         setBooks(response.books || []);
       } catch (error: any) {

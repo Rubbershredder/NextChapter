@@ -29,9 +29,18 @@ const request = async <T>(
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      // Extract the error message from the response
-      const errorMessage = error.response.data?.error || error.message;
-      throw new Error(errorMessage);
+      const { status, data } = error.response;
+      const errorMessage = data?.error || error.message;
+      switch (status) {
+        case 401:
+          throw new Error("Unauthorized: Please log in again.");
+        case 403:
+          throw new Error("Forbidden: You don’t have permission to access this resource.");
+        case 404:
+          throw new Error("Resource not found.");
+        default:
+          throw new Error(errorMessage || "An unexpected error occurred.");
+      }
     }
     throw error;
   }

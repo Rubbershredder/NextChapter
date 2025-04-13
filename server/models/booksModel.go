@@ -14,10 +14,11 @@ type Book struct {
 	Author      string `json:"author"`
 	Genre       string `json:"genre"`
 	Location    string `json:"location"`
-	ContactInfo string `json:"contactInfo"` // Email or Phone
+	ContactInfo string `json:"contactInfo"`
 	OwnerID     string `json:"ownerId"`
-	Status      string `json:"status"` // "available" or "rented"
+	Status      string `json:"status"`
 	ImageURL    string `json:"imageUrl,omitempty"`
+	RenterID    string `json:"renterId,omitempty"`
 }
 
 var (
@@ -128,6 +129,19 @@ func loadBooksFromDisk() error {
 	}
 	// Unmarshal the data
 	return json.Unmarshal(data, &books)
+}
+
+func GetBooksByRenter(renterID string) []Book {
+	bookMutex.RLock()
+	defer bookMutex.RUnlock()
+
+	var rentedBooks []Book
+	for _, book := range books {
+		if book.RenterID == renterID && book.Status == "rented" {
+			rentedBooks = append(rentedBooks, book)
+		}
+	}
+	return rentedBooks
 }
 
 // InitBooks initializes the books data store

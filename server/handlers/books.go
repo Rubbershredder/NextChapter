@@ -160,7 +160,6 @@ func GetMyBooks(c *gin.Context) {
 
 // UpdateBookStatus updates just the status of a book
 func UpdateBookStatus(c *gin.Context) {
-	// Get the current user from the context
 	userObj, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
@@ -168,23 +167,18 @@ func UpdateBookStatus(c *gin.Context) {
 	}
 	user := userObj.(models.User)
 
-	// Get book ID from URL
 	id := c.Param("id")
-
-	// Check if book exists
 	existingBook, exists := models.GetBookByID(id)
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
 	}
 
-	// Check if user is the owner
 	if existingBook.OwnerID != user.ID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You can only update your own books"})
 		return
 	}
 
-	// Bind status data
 	var statusData struct {
 		Status string `json:"status" binding:"required"`
 	}
@@ -193,8 +187,11 @@ func UpdateBookStatus(c *gin.Context) {
 		return
 	}
 
-	// Update only the status
 	existingBook.Status = statusData.Status
+	if statusData.Status == "available" {
+		existingBook.RenterID = ""
+	}
+
 	if err := models.UpdateBook(existingBook, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -245,4 +242,78 @@ func generateID() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+// GetOwnedBooks returns all books owned by the current user (for owners)
+func GetOwnedBooks(c *gin.Context) {
+	userObj, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+	user := userObj.(models.User)
+
+	// Restrict access to owners only
+	if user.Role != models.RoleOwner {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only owners can access this endpoint"})
+		return
+	}
+
+	books := models.GetBooksByOwner(user.ID)
+	c.JSON(http.StatusOK, gin.H{"books": books})
+}
+
+// GetRentedBooks returns all books rented by the current user (for seekers)
+func GetRentedBooks(c *gin.Context) {
+	userObj, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+	user := userObj.(models.User)
+
+	// Restrict access to seekers only
+	if user.Role != models.RoleSeeker {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only seekers can access this endpoint"})
+		return
+	}
+
+	books := models.GetBooksByRenter(user.ID)
+	c.JSON(http.StatusOK, gin.H{"books": books})
+}
+func RequestBook(c *gin.Context) {
+	userObj, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+		return
+	}
+	user := userObj.(models.User)
+
+	// Restrict to seekers only
+	if user.Role != models.RoleSeeker {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only seekers can request books"})
+		return
+	}
+
+	id := c.Param("id")
+	book, exists := models.GetBookByID(id)
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
+
+	if book.Status != "available" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Book is not available for rent"})
+		return
+	}
+
+	book.Status = "rented"
+	book.RenterID = user.ID
+
+	if err := models.UpdateBook(book, book.OwnerID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Book requested successfully", "book": book})
 }
