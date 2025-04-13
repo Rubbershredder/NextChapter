@@ -50,12 +50,13 @@ export default function Nav() {
   const closeMenu = () => setIsMenuOpen(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    
+    <header className="max-w-screen-xl mx-auto px-4 sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <BookOpen className="h-6 w-6" />
-            <span className="font-bold text-xl">BookShare</span>
+            <span className="font-bold text-xl">NextChapter</span>
           </Link>
         </div>
 

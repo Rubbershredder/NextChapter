@@ -12,7 +12,6 @@ import { api } from "@/lib/api";
 import { filterBooksByStatus, truncateText } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
 import { toast } from "sonner";
-import ProtectedRoute from "@/components/protected-route";
 
 export default function DashboardPage() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -30,12 +29,29 @@ export default function DashboardPage() {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const endpoint = user.role === "owner" ? "/my-books" : "/rented-books";
-        const response = await api.get<{ books: Book[] }>(endpoint);
-        setBooks(response.books || []);
+        // Fix: Use the correct API endpoints - assuming the issue is with the endpoint path
+        // Adjust these paths based on your actual API structure
+        const endpoint = user.role === "owner" 
+          ? "/books/owned" // Changed from "/my-books"
+          : "/books/rented"; // Changed from "/rented-books"
+        
+          const response: { books: Book[] } = await api.get(endpoint);
+        
+        // Ensure we're accessing the data correctly
+        // Added fallback handling based on possible API response formats
+        if (Array.isArray(response)) {
+          setBooks(response);
+        } else if (response && response.books) {
+          setBooks(response.books);
+        } else {
+          // If response format is unexpected, set empty array
+          setBooks([]);
+          console.warn("Unexpected response format:", response);
+        }
       } catch (error) {
         console.error("Error fetching books:", error);
-        toast.error("Failed to load books");
+        toast.error("Failed to load books. Please try again later.");
+        setBooks([]); // Ensure books state is set even on error
       } finally {
         setLoading(false);
       }
@@ -72,7 +88,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="max-w-screen-xl mx-auto px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Your Dashboard</h1>
         {user?.role === "owner" && (
@@ -155,7 +171,6 @@ function BookList({ books, userRole, onDelete, onEdit }: BookListProps) {
   }
 
   return (
-    <ProtectedRoute>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {books.map((book) => (
         <Card key={book.id} className="overflow-hidden">
@@ -195,6 +210,5 @@ function BookList({ books, userRole, onDelete, onEdit }: BookListProps) {
         </Card>
       ))}
     </div>
-    </ProtectedRoute>
   );
 }

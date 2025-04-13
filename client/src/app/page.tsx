@@ -5,6 +5,7 @@ import { BookOpen, Book, Share2, Search } from "lucide-react"
 
 export default function HomePage() {
   return (
+    <div className="max-w-screen-xl mx-auto px-4">
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950">
@@ -133,6 +134,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+    </div>
     </div>
   )
 }

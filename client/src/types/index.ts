@@ -13,6 +13,7 @@ export type User = {
 
 // Book related types
 export type Book = {
+  coverColor: string;
   id: string;
   title: string;
   author: string;

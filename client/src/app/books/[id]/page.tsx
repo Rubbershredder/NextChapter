@@ -3,19 +3,21 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { 
-  Book as BookIcon, User, MapPin, Phone, 
-  Tag, Edit, Trash2, ArrowLeft, CheckCircle
-} from "lucide-react"
+import { BookIcon, User, MapPin, Phone, Edit, Trash2, ArrowLeft, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { 
-  Dialog, DialogContent, DialogDescription, 
-  DialogHeader, DialogTitle, DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
-import {  getCurrentUser } from "@/lib/auth"
-import { Book } from "@/types"
+import { getCurrentUser } from "@/lib/auth"
+import type { Book } from "@/types"
 import { stringToColor, formatPhoneNumber, isBookOwner } from "@/lib/utils"
 import { toast } from "sonner"
 
@@ -32,9 +34,9 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
     const fetchBook = async () => {
       setIsLoading(true)
       try {
-        const response = await api.get<{book: Book}>(`/books/${params.id}`)
+        const response = await api.get<{ book: Book }>(`/books/${params.id}`)
         setBook(response.book)
-        
+
         const currentUser = getCurrentUser()
         if (currentUser) {
           setIsOwner(isBookOwner(response.book.ownerId, currentUser.id))
@@ -42,7 +44,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
       } catch (error) {
         console.error("Failed to fetch book:", error)
         toast.error("Book not found or has been removed")
-        router.push('/books')
+        router.push("/books")
       } finally {
         setIsLoading(false)
       }
@@ -56,7 +58,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
     try {
       await api.delete(`/books/${params.id}`)
       toast.success("Book deleted successfully")
-      router.push('/dashboard')
+      router.push("/dashboard")
     } catch (error) {
       toast.error("Failed to delete book")
       console.error("Error deleting book:", error)
@@ -73,7 +75,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
       await api.post(`/books/${params.id}/request`, {})
       toast.success("Book request sent successfully")
       // Refresh the book data to show updated status
-      const response = await api.get<{book: Book}>(`/books/${params.id}`)
+      const response = await api.get<{ book: Book }>(`/books/${params.id}`)
       setBook(response.book)
     } catch (error) {
       toast.error("Failed to request book")
@@ -85,7 +87,7 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
 
   if (isLoading) {
     return (
-      <div className="container py-8 flex justify-center items-center min-h-[60vh]">
+      <div className="flex justify-center items-center min-h-[70vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
@@ -93,10 +95,12 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
 
   if (!book) {
     return (
-      <div className="container py-8 flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center justify-center min-h-[70vh]">
         <BookIcon className="h-16 w-16 text-gray-400 mb-4" />
         <h1 className="text-2xl font-bold mb-2">Book Not Found</h1>
-        <p className="text-muted-foreground mb-4">The book you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+        <p className="text-muted-foreground mb-6">
+          The book you&apos;re looking for doesn&apos;t exist or has been removed.
+        </p>
         <Button asChild>
           <Link href="/books">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -107,11 +111,13 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
     )
   }
 
+  const statusLabel = book.status === "available" ? "Available" : "Currently Rented"
+
   return (
-    <div className="container py-8">
-      <div className="mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/books">
+    <div className="max-w-screen-xl mx-auto px-4">
+      <div className="py-4">
+        <Button variant="ghost" size="sm" asChild className="group">
+          <Link href="/books" className="flex items-center">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Books
           </Link>
@@ -121,91 +127,109 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
       <div className="grid md:grid-cols-3 gap-8">
         {/* Book Cover/Image */}
         <div className="md:col-span-1">
-          <div 
-            className="h-80 rounded-lg bg-gradient-to-b flex items-center justify-center p-6 text-white"
-            style={{ backgroundColor: stringToColor(book.title) }}
+          <div
+            className="aspect-[3/4] rounded-md flex items-center justify-center p-6 text-white"
+            style={{ backgroundColor: book.coverColor || stringToColor(book.title) }}
           >
             <div className="text-center">
-              <BookIcon className="h-12 w-12 mx-auto mb-4" />
-              <h2 className="font-bold text-xl">{book.title}</h2>
+              <BookIcon className="h-16 w-16 mx-auto mb-4" />
+              <h2 className="font-bold text-2xl">{book.title}</h2>
               <p className="mt-2">by {book.author}</p>
             </div>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <Badge variant="outline" className="px-3 py-1">
+              {book.genre}
+            </Badge>
           </div>
         </div>
 
         {/* Book Details */}
-        <div className="md:col-span-2 space-y-6">
-          <div>
+        <div className="md:col-span-2">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
             <p className="text-xl text-muted-foreground">by {book.author}</p>
-            <div className="flex items-center mt-4">
-              <Tag className="h-4 w-4 mr-2 text-blue-500" />
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium dark:bg-blue-900/30 dark:text-blue-400">
-                {book.genre}
-              </span>
+
+            <div className="mt-4">
+              <Badge
+                className={`px-3 py-1 ${
+                  book.status === "available"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                }`}
+              >
+                {statusLabel}
+              </Badge>
             </div>
           </div>
 
-          <Card>
+          <Card className="mb-6">
             <CardHeader className="pb-2">
-              <h3 className="font-semibold">Book Information</h3>
+              <h3 className="text-lg font-semibold">Book Information</h3>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-4">
               <div className="flex items-start">
-                <MapPin className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
+                <div className="w-8 mr-3 text-muted-foreground">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Status</p>
+                  <p className="text-muted-foreground">
+                    {book.status === "available" ? "Available for borrowing" : "Currently being borrowed"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <div className="w-8 mr-3 text-muted-foreground">
+                  <MapPin className="h-5 w-5" />
+                </div>
                 <div>
                   <p className="font-medium">Location</p>
                   <p className="text-muted-foreground">{book.location}</p>
                 </div>
               </div>
+
               <div className="flex items-start">
-                <User className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
+                <div className="w-8 mr-3 text-muted-foreground">
+                  <User className="h-5 w-5" />
+                </div>
                 <div>
                   <p className="font-medium">Owner</p>
                   <p className="text-muted-foreground">Book Owner</p>
                 </div>
               </div>
+
               <div className="flex items-start">
-                <Phone className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
+                <div className="w-8 mr-3 text-muted-foreground">
+                  <Phone className="h-5 w-5" />
+                </div>
                 <div>
                   <p className="font-medium">Contact</p>
                   <p className="text-muted-foreground">{formatPhoneNumber(book.contactInfo)}</p>
                 </div>
               </div>
-              <div className="flex items-start">
-                <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
-                <div>
-                  <p className="font-medium">Status</p>
-                  <p>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      book.status === 'available' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                        : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                    }`}>
-                      {book.status === 'available' ? 'Available' : 'Rented'}
-                    </span>
-                  </p>
-                </div>
-              </div>
             </CardContent>
-            <CardFooter className="border-t pt-4 flex justify-between">
+
+            <CardFooter className="border-t pt-4">
               {isOwner ? (
-                <>
-                  <Button variant="outline" asChild>
+                <div className="flex w-full gap-4">
+                  <Button variant="outline" asChild className="flex-1">
                     <Link href={`/books/edit/${book.id}`}>
                       <Edit className="mr-2 h-4 w-4" />
                       Edit Book
                     </Link>
                   </Button>
-                  <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+                  <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} className="flex-1">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete Book
                   </Button>
-                </>
+                </div>
               ) : (
-                <Button 
-                  className="w-full" 
-                  disabled={book.status !== 'available' || requestingBook}
+                <Button
+                  className="w-full py-2"
+                  disabled={book.status !== "available" || requestingBook}
                   onClick={handleRequestBook}
                 >
                   {requestingBook ? "Sending Request..." : "Request This Book"}
@@ -225,15 +249,11 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
               Are you sure you want to delete {book.title}? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

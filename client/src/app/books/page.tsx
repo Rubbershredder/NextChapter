@@ -15,6 +15,8 @@ import { truncateText, stringToColor } from "@/lib/utils"
 // Use constants for the "all" filter values
 const ALL_LOCATIONS = "all_locations"
 const ALL_GENRES = "all_genres"
+// Use a constant for empty string placeholder
+const EMPTY_VALUE_PLACEHOLDER = "empty_value_placeholder"
 
 export default function BooksPage() {
   const router = useRouter()
@@ -47,9 +49,14 @@ export default function BooksPage() {
         const response = await api.get<{books: BookType[]}>('/books', apiParams)
         setBooks(response.books)
         
-        // Extract unique genres and locations for filters
-        const uniqueGenres = [...new Set(response.books.map(book => book.genre))]
-        const uniqueLocations = [...new Set(response.books.map(book => book.location))]
+        // Extract unique genres and locations for filters, replacing empty strings with placeholder
+        const uniqueGenres = [...new Set(response.books.map(book => 
+          book.genre === "" ? EMPTY_VALUE_PLACEHOLDER : book.genre
+        ))]
+        
+        const uniqueLocations = [...new Set(response.books.map(book => 
+          book.location === "" ? EMPTY_VALUE_PLACEHOLDER : book.location
+        ))]
         
         setGenres(uniqueGenres)
         setLocations(uniqueLocations)
@@ -83,8 +90,15 @@ export default function BooksPage() {
   }
 
   const handleSelectChange = (name: string, value: string) => {
-    // Convert "all_*" constants to empty string for API requests
-    const apiValue = (value === ALL_LOCATIONS || value === ALL_GENRES) ? "" : value
+    // Convert constants to empty string for API requests
+    let apiValue = value
+    if (value === ALL_LOCATIONS || value === ALL_GENRES) {
+      apiValue = ""
+    } else if (value === EMPTY_VALUE_PLACEHOLDER) {
+      // Handle the placeholder for empty values
+      apiValue = ""
+    }
+    
     setSearchParams(prev => ({ ...prev, [name]: apiValue }))
   }
 
@@ -93,8 +107,14 @@ export default function BooksPage() {
     router.push("/books")
   }
 
+  // Helper to display appropriate label for a value
+  const getDisplayLabel = (value: string) => {
+    if (value === EMPTY_VALUE_PLACEHOLDER) return "(Unspecified)"
+    return value
+  }
+
   return (
-    <div className="container py-8">
+    <div className="max-w-screen-xl mx-auto px-4">
       <div className="flex flex-col space-y-6">
         <div>
           <h1 className="text-3xl font-bold mb-4">Browse Books</h1>
@@ -124,7 +144,9 @@ export default function BooksPage() {
                 
                 <div>
                   <Select
-                    value={searchParams.location ? searchParams.location : ALL_LOCATIONS}
+                    value={searchParams.location ? 
+                      (searchParams.location === "" ? ALL_LOCATIONS : searchParams.location) : 
+                      ALL_LOCATIONS}
                     onValueChange={(value) => handleSelectChange("location", value)}
                   >
                     <SelectTrigger>
@@ -137,7 +159,7 @@ export default function BooksPage() {
                       <SelectItem value={ALL_LOCATIONS}>All Locations</SelectItem>
                       {locations.map((location) => (
                         <SelectItem key={location} value={location}>
-                          {location}
+                          {getDisplayLabel(location)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -146,7 +168,9 @@ export default function BooksPage() {
                 
                 <div>
                   <Select
-                    value={searchParams.genre ? searchParams.genre : ALL_GENRES}
+                    value={searchParams.genre ? 
+                      (searchParams.genre === "" ? ALL_GENRES : searchParams.genre) : 
+                      ALL_GENRES}
                     onValueChange={(value) => handleSelectChange("genre", value)}
                   >
                     <SelectTrigger>
@@ -159,7 +183,7 @@ export default function BooksPage() {
                       <SelectItem value={ALL_GENRES}>All Genres</SelectItem>
                       {genres.map((genre) => (
                         <SelectItem key={genre} value={genre}>
-                          {genre}
+                          {getDisplayLabel(genre)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -211,14 +235,14 @@ export default function BooksPage() {
                     <div className="space-y-2">
                       <p className="text-sm font-medium">by {book.author}</p>
                       <p className="text-sm text-muted-foreground">
-                        {truncateText(book.genre, 30)}
+                        {truncateText(book.genre || "(Unspecified)", 30)}
                       </p>
                     </div>
                   </CardContent>
                   <CardFooter className="pt-2 flex justify-between border-t text-xs text-muted-foreground">
                     <div className="flex items-center">
                       <Map className="h-3 w-3 mr-1" />
-                      {truncateText(book.location, 20)}
+                      {truncateText(book.location || "(Unspecified)", 20)}
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       book.status === 'available' 
