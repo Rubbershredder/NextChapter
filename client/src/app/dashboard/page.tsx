@@ -20,7 +20,6 @@ export default function DashboardPage() {
   const user = getCurrentUser();
 
   useEffect(() => {
-    // Redirect if not logged in
     if (!user) {
       router.push("/login");
       return;
@@ -29,29 +28,17 @@ export default function DashboardPage() {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        // Fix: Use the correct API endpoints - assuming the issue is with the endpoint path
-        // Adjust these paths based on your actual API structure
-        const endpoint = user.role === "owner" 
-          ? "/books/owned" // Changed from "/my-books"
-          : "/books/rented"; // Changed from "/rented-books"
-        
-          const response: { books: Book[] } = await api.get(endpoint);
-        
-        // Ensure we're accessing the data correctly
-        // Added fallback handling based on possible API response formats
-        if (Array.isArray(response)) {
-          setBooks(response);
-        } else if (response && response.books) {
-          setBooks(response.books);
-        } else {
-          // If response format is unexpected, set empty array
-          setBooks([]);
-          console.warn("Unexpected response format:", response);
-        }
-      } catch (error) {
+        const endpoint = user.role === "owner" ? "/books/owned" : "/books/rented";
+        const response: { books: Book[] } = await api.get(endpoint);
+        setBooks(response.books || []);
+      } catch (error: any) {
         console.error("Error fetching books:", error);
-        toast.error("Failed to load books. Please try again later.");
-        setBooks([]); // Ensure books state is set even on error
+        if (error.message === "Book not found" || error.response?.status === 404) {
+          toast.info(user.role === "owner" ? "You haven't added any books yet." : "You haven't rented any books yet.");
+        } else {
+          toast.error("Failed to load books. Please try again later.");
+        }
+        setBooks([]);
       } finally {
         setLoading(false);
       }
@@ -135,6 +122,9 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+// BookList component remains unchanged
+// ... (rest of the code for BookList)
 
 interface BookListProps {
   books: Book[];

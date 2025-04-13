@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { BookIcon, User, MapPin, Phone, Edit, Trash2, ArrowLeft, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -21,8 +21,10 @@ import type { Book } from "@/types"
 import { stringToColor, formatPhoneNumber, isBookOwner } from "@/lib/utils"
 import { toast } from "sonner"
 
-export default function BookDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
+export default function BookDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
   const [book, setBook] = useState<Book | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isOwner, setIsOwner] = useState(false)
@@ -34,9 +36,8 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
     const fetchBook = async () => {
       setIsLoading(true)
       try {
-        const response = await api.get<{ book: Book }>(`/books/${params.id}`)
+        const response = await api.get<{ book: Book }>(`/books/${id}`)
         setBook(response.book)
-
         const currentUser = getCurrentUser()
         if (currentUser) {
           setIsOwner(isBookOwner(response.book.ownerId, currentUser.id))
@@ -51,17 +52,17 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
     }
 
     fetchBook()
-  }, [params.id, router])
+  }, [id, router])
 
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      await api.delete(`/books/${params.id}`)
+      await api.delete(`/books/${id}`)
       toast.success("Book deleted successfully")
       router.push("/dashboard")
     } catch (error) {
-      toast.error("Failed to delete book")
       console.error("Error deleting book:", error)
+      toast.error("Failed to delete book")
     } finally {
       setIsDeleting(false)
       setDeleteDialogOpen(false)
@@ -71,15 +72,17 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
   const handleRequestBook = async () => {
     setRequestingBook(true)
     try {
-      // This would be your actual booking/request API call
-      await api.post(`/books/${params.id}/request`, {})
+      await api.post(`/books/${id}/request`, {})
       toast.success("Book request sent successfully")
-      // Refresh the book data to show updated status
-      const response = await api.get<{ book: Book }>(`/books/${params.id}`)
+      const response = await api.get<{ book: Book }>(`/books/${id}`)
       setBook(response.book)
-    } catch (error) {
-      toast.error("Failed to request book")
+    } catch (error: any) {
       console.error("Error requesting book:", error)
+      if (error.response?.status === 404) {
+        toast.error("Book not found or unavailable for request")
+      } else {
+        toast.error("Failed to request book")
+      }
     } finally {
       setRequestingBook(false)
     }
@@ -125,7 +128,6 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
-        {/* Book Cover/Image */}
         <div className="md:col-span-1">
           <div
             className="aspect-[3/4] rounded-md flex items-center justify-center p-6 text-white"
@@ -137,7 +139,6 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
               <p className="mt-2">by {book.author}</p>
             </div>
           </div>
-
           <div className="mt-4 flex justify-center">
             <Badge variant="outline" className="px-3 py-1">
               {book.genre}
@@ -145,12 +146,10 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Book Details */}
         <div className="md:col-span-2">
           <div className="mb-6">
             <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
             <p className="text-xl text-muted-foreground">by {book.author}</p>
-
             <div className="mt-4">
               <Badge
                 className={`px-3 py-1 ${
@@ -180,7 +179,6 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
                   </p>
                 </div>
               </div>
-
               <div className="flex items-start">
                 <div className="w-8 mr-3 text-muted-foreground">
                   <MapPin className="h-5 w-5" />
@@ -190,7 +188,6 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
                   <p className="text-muted-foreground">{book.location}</p>
                 </div>
               </div>
-
               <div className="flex items-start">
                 <div className="w-8 mr-3 text-muted-foreground">
                   <User className="h-5 w-5" />
@@ -200,7 +197,6 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
                   <p className="text-muted-foreground">Book Owner</p>
                 </div>
               </div>
-
               <div className="flex items-start">
                 <div className="w-8 mr-3 text-muted-foreground">
                   <Phone className="h-5 w-5" />
@@ -211,12 +207,11 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
             </CardContent>
-
             <CardFooter className="border-t pt-4">
               {isOwner ? (
                 <div className="flex w-full gap-4">
                   <Button variant="outline" asChild className="flex-1">
-                    <Link href={`/books/edit/${book.id}`}>
+                    <Link href={`/books/edit/${id}`}>
                       <Edit className="mr-2 h-4 w-4" />
                       Edit Book
                     </Link>
@@ -240,7 +235,6 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
