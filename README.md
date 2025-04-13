@@ -116,20 +116,20 @@ The frontend will be available at `http://localhost:3000`.
 ```
 
 ## API Endpoints
-# Authentication
+## Authentication
 
 POST /api/register - Register a new user
 POST /api/login - User login
 POST /api/logout - User logout (authenticated)
 GET /api/me - Get current user info (authenticated)
 
-# Users
+## Users
 
 GET /api/users/:id - Get user profile by ID (authenticated)
 PUT /api/me - Update current user profile (authenticated)
 GET /api/admin/users - List all users (owner only)
 
-# Books
+## Books
 
 GET /api/books - List all books (with optional filters)
 GET /api/search - Search books with filters
