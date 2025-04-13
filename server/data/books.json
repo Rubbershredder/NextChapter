@@ -20,16 +20,6 @@
     "status": "available",
     "imageUrl": "https://example.com/great-gatsby.jpg"
   },
-  "6565fe093efc64dad5e84f0eb1351100": {
-    "id": "6565fe093efc64dad5e84f0eb1351100",
-    "title": "The Great Gatsby",
-    "author": "F. Scott Fitzgerald",
-    "genre": "Classic",
-    "location": "New York",
-    "contactInfo": "john@example.com",
-    "ownerId": "61401823-1af7-46b5-839b-a7bafe204567",
-    "status": "available"
-  },
   "69c39d25e41bd2defea897e1e37489d1": {
     "id": "69c39d25e41bd2defea897e1e37489d1",
     "title": "The Great Gatsby",
@@ -40,6 +30,16 @@
     "ownerId": "61401823-1af7-46b5-839b-a7bafe204567",
     "status": "available",
     "imageUrl": "https://example.com/great-gatsby.jpg"
+  },
+  "938c5e33348e67143ef3c266aba1b32b": {
+    "id": "938c5e33348e67143ef3c266aba1b32b",
+    "title": "sfda",
+    "author": "sfda",
+    "genre": "Mystery",
+    "location": "sfda",
+    "contactInfo": "sdfa",
+    "ownerId": "61401823-1af7-46b5-839b-a7bafe204567",
+    "status": "available"
   },
   "book1": {
     "id": "book1",
